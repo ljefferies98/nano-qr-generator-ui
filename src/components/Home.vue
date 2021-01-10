@@ -12,9 +12,8 @@
             <mdb-row>
               <mdb-col>
                 <p class="mb-2">
-                  This application allows you to specify a address, amount and
-                  label which will the generate you a QR Code with options you
-                  selected.
+                  This application allows you to specify an address, amount and a
+                  label which will generate you a QR Code that can be used to accept payments in NANO.
                 </p>
                 <br />
               </mdb-col>
