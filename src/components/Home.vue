@@ -12,8 +12,9 @@
             <mdb-row>
               <mdb-col>
                 <p class="mb-2">
-                  This application allows you to specify an address, amount and a
-                  label which will generate you a QR Code that can be used to accept payments in NANO.
+                  This application allows you to specify an address, amount and
+                  a label which will generate you a QR Code that can be used to
+                  accept payments in NANO.
                 </p>
                 <br />
               </mdb-col>
@@ -67,7 +68,10 @@
                     placeholder="Developer Wallet"
                     v-model="form.label"
                   />
-                  <div class="d-flex justify-content-center align-item-center mt-5" v-if="showSpinner">
+                  <div
+                    class="d-flex justify-content-center align-item-center mt-5"
+                    v-if="showSpinner"
+                  >
                     <breeding-rhombus-spinner
                       :animation-duration="2000"
                       :size="65"
@@ -76,7 +80,7 @@
                   </div>
                   <div v-if="showQr">
                     <br />
-                    <img :src="qrcode" alt="Base64 encoded image"/>
+                    <img :src="qrcode" alt="Base64 encoded image" />
                   </div>
                   <div class="text-center py-4 mt-3">
                     <button class="btn btn-outline-black" type="submit">
@@ -84,6 +88,20 @@
                     </button>
                   </div>
                 </form>
+              </mdb-col>
+            </mdb-row>
+            <mdb-row>
+              <mdb-col>
+                <div class="col-12 col-md-8 mx-md-auto mx-sm-2 my-2">
+                  <mdb-alert
+                    color="danger"
+                    v-if="showErrorMessage"
+                    @closeAlert="showErrorMessage = false"
+                    dismiss
+                  >
+                    {{ errorMessage }}
+                  </mdb-alert>
+                </div>
               </mdb-col>
             </mdb-row>
           </div>
@@ -94,10 +112,10 @@
 </template>
 
 <script>
-import { mdbContainer, mdbRow, mdbCol } from "mdbvue";
+import { mdbContainer, mdbRow, mdbCol, mdbAlert } from "mdbvue";
 import { BreedingRhombusSpinner } from "epic-spinners";
 import axios from "axios";
-import _ from 'lodash';
+import _ from "lodash";
 
 export default {
   name: "Home",
@@ -112,12 +130,15 @@ export default {
       qrcode: "",
       showQr: false,
       showSpinner: false,
+      showErrorMessage: false,
+      errorMessage: "",
     };
   },
   components: {
     mdbContainer,
     mdbRow,
     mdbCol,
+    mdbAlert,
     BreedingRhombusSpinner,
   },
   methods: {
@@ -125,7 +146,10 @@ export default {
       this.showQr = false;
       this.showSpinner = !this.showQr;
       let form = _.cloneDeep(this.form);
-      form.amount = (form.amount * Math.pow(10, 30)).toLocaleString('fullwide', {useGrouping:false}) 
+      form.amount = (form.amount * Math.pow(10, 30)).toLocaleString(
+        "fullwide",
+        { useGrouping: false }
+      );
       axios
         .post("https://nano-qr-generator-api.herokuapp.com/", form, {
           responseType: "blob",
@@ -137,7 +161,17 @@ export default {
           this.showSpinner = !this.showQr;
         })
         .catch((error) => {
-          console.log(error);
+          let reader = new FileReader();
+
+          reader.addEventListener("loadend", (e) => {
+            const text = e.srcElement.result;
+            let errorResponse = JSON.parse(text);
+            this.errorMessage = errorResponse.message;
+            this.showSpinner = false;
+            this.showErrorMessage = true;
+          });
+
+          reader.readAsText(error.response.data);
         })
         .finally(() => {
           //Perform action in always
